@@ -28,7 +28,7 @@ module OrderState
 
   ACTIONS.each do |action|
     define_method action do
-      OrderState.get_state(self).public_send action
+      order_state.public_send action
     end
   end
 
