@@ -1,2 +1,2 @@
 # order_state
-A Ruby implementation of the State pattern
+This is an example [State Pattern](https://refactoring.guru/design-patterns/state) implementation for Ruby on Rails.
