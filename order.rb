@@ -41,7 +41,7 @@ class Order # < ActiveRecord::Base
     order_state.can_cancel?
   end
 
-  # Actions. These will fail if the order is in the wrong state
+  # Actions. These will fail and the block NOT executed if the order is in the wrong state
   def cancel!
     Order.transaction do
       order_state.cancel! do
