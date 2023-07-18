@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 module OrderState
-  STATES = %w|received confirmed released in_progress ready_to_ship shipped closed cancelled|.freeze
+  StateError = Class.new(StandardError)
+
+  STATES = %w[received confirmed released in_progress ready_to_ship shipped closed cancelled].freeze
 
   def self.included(base)
     base.class_eval do
-      validates_inclusion_of :state, in: STATES
+      # ActiveRecord
+      # validates_inclusion_of :state, in: STATES
 
       STATES.each do |state|
         define_singleton_method state do
@@ -23,8 +28,8 @@ module OrderState
     raise StateError, "Invalid State '#{stateful.state}'"
   end
 
-  ACTIONS = [:received?, :add_part!, :confirm!, :confirmed?, :release!, :released?, :start!, :make_shippable!,
-             :complete!, :ship!, :shipped?, :close!, :closed?, :cancel!, :cancelled?].freeze
+  ACTIONS = %i[received? add_part! confirm! confirmed? release! released? start! make_shippable! complete! ship!
+               shipped? close! closed? cancel! cancelled?].freeze
 
   ACTIONS.each do |action|
     define_method action do
@@ -40,7 +45,6 @@ module OrderState
     OrderState::ACTIONS.each do |action|
       if action[-1] == '!'
         define_method action do
-          # TODO: customise message eg. Can't cancel a 'shipped' order
           raise StateError, "#{@stateful.class.name}: Can't #{action} from '#{@stateful.state}' state"
         end
       else
@@ -48,7 +52,7 @@ module OrderState
       end
     end
 
-    def confirm!(time = Time.zone.now)
+    def confirm!(_time = Time.now)
       raise StateError, "Can't confirm! from '#{@stateful.state}' state"
     end
 
@@ -142,10 +146,10 @@ module OrderState
     end
 
     def complete!(time = Time.zone.now)
-      if @stateful.can_complete?
-        yield if block_given?
-        @stateful.update!(state: 'shipped', completed_at: time)
-      end
+      retrun unless @stateful.can_complete?
+
+      yield if block_given?
+      @stateful.update!(state: 'shipped', completed_at: time)
     end
   end
 
@@ -173,10 +177,10 @@ module OrderState
     end
 
     def complete!(time = Time.zone.now)
-      if @stateful.can_complete?
-        yield if block_given?
-        @stateful.update!(state: 'shipped', completed_at: time)
-      end
+      return unless @stateful.can_complete?
+
+      yield if block_given?
+      @stateful.update!(state: 'shipped', completed_at: time)
     end
   end
 
