@@ -69,7 +69,7 @@ module OrderState
     end
   end
 
-  class Cancellable < Base
+  module Cancellable
     def cancel!(time = Time.zone.now)
       yield if block_given?
       @stateful.update!(state: 'cancelled', cancelled_at: time)
@@ -80,7 +80,9 @@ module OrderState
     end
   end
 
-  class Received < Cancellable
+  class Received < Base
+    include Cancellable
+
     def received?
       true
     end
@@ -96,7 +98,9 @@ module OrderState
     end
   end
 
-  class Confirmed < Cancellable
+  class Confirmed < Base
+    include Cancellable
+
     def release!(time = Time.zone.now)
       yield if block_given?
 
@@ -114,7 +118,9 @@ module OrderState
     end
   end
 
-  class Released < Cancellable
+  class Released < Base
+    include Cancellable
+
     def start!(time = Time.zone.now)
       yield if block_given?
 
@@ -132,7 +138,9 @@ module OrderState
     end
   end
 
-  class InProgress < Cancellable
+  class InProgress < Base
+    include Cancellable
+
     def start!; end
 
     def make_shippable!(time = Time.zone.now)
@@ -153,7 +161,9 @@ module OrderState
     end
   end
 
-  class ReadyToShip < Cancellable
+  class ReadyToShip < Base
+    include Cancellable
+
     def start!; end
 
     def make_shippable!(time = Time.zone.now)
